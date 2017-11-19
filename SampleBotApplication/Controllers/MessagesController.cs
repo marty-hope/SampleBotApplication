@@ -4,26 +4,47 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Connector;
+using LuisBot.Services;
+using System.Web.Configuration;
+using System;
+using System.Diagnostics;
+using SampleBotApplication.Dialogs;
 
 namespace SampleBotApplication
 {
     [BotAuthentication]
     public class MessagesController : ApiController
     {
+        private static readonly bool IsSpellCorrectionEnabled = bool.Parse(WebConfigurationManager.AppSettings["IsSpellCorrectionEnabled"]);
+
+        private readonly BingSpellCheckService spellService = new BingSpellCheckService();
         /// <summary>
         /// POST: api/Messages
         /// Receive a message from a user and reply to it
         /// </summary>
         public async Task<HttpResponseMessage> Post([FromBody]Activity activity)
         {
-            if (activity.Type == ActivityTypes.Message)
+            if(activity.Type == ActivityTypes.Message)
             {
-                await Conversation.SendAsync(activity, () => new Dialogs.RootDialog());
+                if (IsSpellCorrectionEnabled)
+                {
+                    try
+                    {
+                        activity.Text = await this.spellService.GetCorrectedTextAsync(activity.Text);
+                    }
+                    catch (Exception ex)
+                    {
+                        Trace.TraceError(ex.ToString());
+                    }
+                }
+
+                await Conversation.SendAsync(activity, () => new RootLuisDialog());
             }
             else
             {
-                HandleSystemMessage(activity);
+                this.HandleSystemMessage(activity);
             }
+
             var response = Request.CreateResponse(HttpStatusCode.OK);
             return response;
         }
