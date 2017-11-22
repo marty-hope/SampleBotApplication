@@ -38,5 +38,13 @@ namespace SampleBotApplication.Dialogs
             context.Wait(this.MessageReceived);
         }
 
+        [LuisIntent("Goodbye")]
+        public async Task Goodbye(IDialogContext context, LuisResult result)
+        {
+            await context.PostAsync("See ya later...");
+
+            context.Wait(this.MessageReceived);
+        }
+
     }
 }
