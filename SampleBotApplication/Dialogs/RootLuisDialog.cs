@@ -33,7 +33,7 @@ namespace SampleBotApplication.Dialogs
         [LuisIntent("Hi")]
         public async Task Hello(IDialogContext context, LuisResult result)
         {
-            await context.PostAsync("Hey there!'");
+            await context.PostAsync("Hey there!");
 
             context.Wait(this.MessageReceived);
         }
